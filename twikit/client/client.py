@@ -1508,8 +1508,16 @@ class Client:
         response, _ = await self.v11.get_place(id)
         return Place(self, response)
 
+    @staticmethod
+    def _parse_replies_cursor(entries):
+        next_cursor = entries[-1]['content']['value']
+        probable_spam = ('displayTreatment' in entries[-1]['content'] and
+                         'actionText' in entries[-1]['content']['displayTreatment'] and
+                         'spam' in entries[-1]['content']['displayTreatment']['actionText'])
+        return next_cursor, probable_spam
+
     async def _get_more_replies(
-        self, tweet_id: str, cursor: str
+        self, tweet_id: str, cursor: str, probable_spam: bool = False
     ) -> Result[Tweet]:
         response, _ = await self.gql.tweet_detail(tweet_id, cursor)
         entries = find_dict(response, 'entries', find_one=True)[0]
@@ -1518,13 +1526,13 @@ class Client:
         for entry in entries:
             if entry['entryId'].startswith(('cursor', 'label')):
                 continue
-            tweet = tweet_from_data(self, entry)
+            tweet = tweet_from_data(self, entry, probable_spam)
             if tweet is not None:
                 results.append(tweet)
 
         if entries[-1]['entryId'].startswith('cursor'):
-            next_cursor = entries[-1]['content']['value']
-            _fetch_next_result = partial(self._get_more_replies, tweet_id, next_cursor)
+            next_cursor, probable_spam = self._parse_replies_cursor(entries)
+            _fetch_next_result = partial(self._get_more_replies, tweet_id, next_cursor, probable_spam)
         else:
             next_cursor = None
             _fetch_next_result = None
@@ -1632,9 +1640,9 @@ class Client:
 
         if entries[-1]['entryId'].startswith('cursor'):
             # if has more replies
-            reply_next_cursor = entries[-1]['content']['value']
+            reply_next_cursor, probable_spam = self._parse_replies_cursor(entries)
             _fetch_more_replies = partial(self._get_more_replies,
-                                          tweet_id, reply_next_cursor)
+                                          tweet_id, reply_next_cursor, probable_spam)
         else:
             reply_next_cursor = None
             _fetch_more_replies = None

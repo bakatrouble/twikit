@@ -97,11 +97,12 @@ class Tweet:
         The full text of the tweet.
     """
 
-    def __init__(self, client: Client, data: dict, user: User = None) -> None:
+    def __init__(self, client: Client, data: dict, user: User = None, probable_spam: bool = False) -> None:
         self._client = client
         self._data = data
         self._legacy: dict = self._data['legacy']
         self.user = user
+        self.probable_spam = probable_spam
 
         self.replies: Result[Tweet] | None = None
         self.reply_to: list[Tweet] | None = None
@@ -560,7 +561,7 @@ class Tweet:
         return not self == __value
 
 
-def tweet_from_data(client: Client, data: dict) -> Tweet:
+def tweet_from_data(client: Client, data: dict, probable_spam: bool = False) -> Tweet:
     ':meta private:'
     tweet_data_ = find_dict(data, 'result', True)
     if not tweet_data_:
