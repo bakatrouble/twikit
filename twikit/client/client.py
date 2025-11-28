@@ -1513,7 +1513,8 @@ class Client:
         next_cursor = entries[-1]['content']['value']
         probable_spam = ('displayTreatment' in entries[-1]['content'] and
                          'actionText' in entries[-1]['content']['displayTreatment'] and
-                         'spam' in entries[-1]['content']['displayTreatment']['actionText'])
+                         ('spam' in entries[-1]['content']['displayTreatment']['actionText'] or
+                          entries[-1]['content']['cursorType'] == 'ShowMoreThreads'))
         return next_cursor, probable_spam
 
     async def _get_more_replies(

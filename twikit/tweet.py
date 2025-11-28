@@ -580,7 +580,7 @@ def tweet_from_data(client: Client, data: dict, probable_spam: bool = False) -> 
         return None
 
     user_data = tweet_data['core']['user_results']['result']
-    return Tweet(client, tweet_data, User(client, user_data))
+    return Tweet(client, tweet_data, User(client, user_data), probable_spam)
 
 
 class ScheduledTweet:
