@@ -1648,13 +1648,14 @@ class Client:
             reply_next_cursor = None
             _fetch_more_replies = None
 
-        tweet.replies = Result(
-            replies_list,
-            _fetch_more_replies,
-            reply_next_cursor
-        )
-        tweet.reply_to = reply_to
-        tweet.related_tweets = related_tweets
+        if tweet is not None:
+            tweet.replies = Result(
+                replies_list,
+                _fetch_more_replies,
+                reply_next_cursor
+            )
+            tweet.reply_to = reply_to
+            tweet.related_tweets = related_tweets
 
         return tweet
 
