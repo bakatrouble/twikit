@@ -14,6 +14,24 @@ if TYPE_CHECKING:
     from .utils import Result
 
 
+class ProfileSpotlights:
+    def __init__(self, data: dict):
+        self._data = data
+        relationship_perspectives = data.get('relationship_perspectives', {})
+        privacy = data.get('privacy', {})
+        core = data.get('core', {})
+
+        self.protected = privacy.get('protected', {})
+        self.blocking = relationship_perspectives.get('blocking', False)
+        self.blocked_by = relationship_perspectives.get('blocked_by', False)
+        self.following = relationship_perspectives.get('following', False)
+        self.followed_by = relationship_perspectives.get('followed_by', False)
+        self.is_verified_organisation = data.get('is_verified_organisation', False)
+        self.rest_id = data.get('rest_id', None)
+        self.name = core.get('name', None)
+        self.screen_name = core.get('screen_name', None)
+
+
 class User:
     """
     Attributes
@@ -84,29 +102,24 @@ class User:
         The type of profile interstitial.
     withheld_in_countries : list[:class:`str`]
         Countries where the user's content is withheld.
+    notifications : :class:`bool`
+        Indicates if notifications were enabled for this user.
     """
 
     def __init__(self, client: Client, data: dict) -> None:
         self._client = client
         legacy = data['legacy']
+        self._legacy: dict = legacy
 
         self.id: str = data['rest_id']
-        self.created_at: str = legacy['created_at']
-        self.name: str = legacy['name']
-        self.screen_name: str = legacy['screen_name']
-        self.profile_image_url: str = legacy['profile_image_url_https']
         self.profile_banner_url: str = legacy.get('profile_banner_url')
         self.url: str = legacy.get('url')
-        self.location: str = legacy['location']
         self.description: str = legacy['description']
         self.description_urls: list = legacy['entities']['description']['urls']
         self.urls: list = legacy['entities'].get('url', {}).get('urls')
         self.pinned_tweet_ids: list[str] = legacy['pinned_tweet_ids_str']
         self.is_blue_verified: bool = data['is_blue_verified']
-        self.verified: bool = legacy['verified']
         self.possibly_sensitive: bool = legacy['possibly_sensitive']
-        self.can_dm: bool = legacy['can_dm']
-        self.can_media_tag: bool = legacy['can_media_tag']
         self.want_retweets: bool = legacy['want_retweets']
         self.default_profile: bool = legacy['default_profile']
         self.default_profile_image: bool = legacy['default_profile_image']
@@ -123,15 +136,50 @@ class User:
         self.translator_type: str = legacy['translator_type']
         self.withheld_in_countries: list[str] = legacy['withheld_in_countries']
         self.protected: bool = legacy.get('protected', False)
+        self.notifications: bool = legacy.get('notifications', False)
+
+        if 'core' in data:
+            self.created_at: str = data['core']['created_at']
+            self.name: str = data['core']['name']
+            self.screen_name: str = data['core']['screen_name']
+        else:
+            self.created_at: str = legacy['created_at']
+            self.name: str = legacy['name']
+            self.screen_name: str = legacy['screen_name']
+
+        if 'avatar' in data:
+            self.profile_image_url: str = data['avatar']['image_url']
+        else:
+            self.profile_image_url: str = legacy['profile_image_url_https']
+
+        if 'location' in data:
+            self.location: str = data['location']['location']
+        else:
+            self.location: str = legacy['location']
+
+        if 'verification' in data:
+            self.verified: bool = data['verification']['verified']
+        else:
+            self.verified: bool = legacy['verified']
+
+        if 'dm_permissions' in data:
+            self.can_dm: bool = data['dm_permissions']['can_dm']
+        else:
+            self.can_dm: bool = legacy['can_dm']
+
+        if 'media_permissions' in data:
+            self.can_media_tag: bool = data['media_permissions']['can_media_tag']
+        else:
+            self.can_media_tag: bool = legacy['can_media_tag']
 
     @property
     def created_at_datetime(self) -> datetime:
         return timestamp_to_datetime(self.created_at)
 
     async def get_tweets(
-        self,
-        tweet_type: Literal['Tweets', 'Replies', 'Media', 'Likes'],
-        count: int = 40,
+            self,
+            tweet_type: Literal['Tweets', 'Replies', 'Media', 'Likes'],
+            count: int = 40,
     ) -> Result[Tweet]:
         """
         Retrieves the user's tweets.
@@ -380,7 +428,7 @@ class User:
         return await self._client.get_user_subscriptions(self.id, count)
 
     async def get_latest_followers(
-        self, count: int | None = None, cursor: str | None = None
+            self, count: int | None = None, cursor: str | None = None
     ) -> Result[User]:
         """
         Retrieves the latest followers.
@@ -391,7 +439,7 @@ class User:
         )
 
     async def get_latest_friends(
-        self, count: int | None = None, cursor: str | None = None
+            self, count: int | None = None, cursor: str | None = None
     ) -> Result[User]:
         """
         Retrieves the latest friends (following users).
@@ -402,7 +450,7 @@ class User:
         )
 
     async def send_dm(
-        self, text: str, media_id: str = None, reply_to = None
+            self, text: str, media_id: str = None, reply_to = None
     ) -> Message:
         """
         Send a direct message to the user.
@@ -506,6 +554,9 @@ class User:
         ...
         """
         return await self._client.get_user_highlights_tweets(self.id, count, cursor)
+
+    async def get_profile_spotlights(self) -> ProfileSpotlights:
+        return await self._client.get_profile_spotlights(self.screen_name)
 
     async def update(self) -> None:
         new = await self._client.get_user_by_id(self.id)
