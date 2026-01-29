@@ -24,7 +24,26 @@ FEATURES = {
     'responsive_web_media_download_video_enabled': False,
     'responsive_web_graphql_skip_user_profile_image_extensions_enabled': False,
     'responsive_web_graphql_timeline_navigation_enabled': True,
-    'responsive_web_enhance_cards_enabled': False
+    'responsive_web_enhance_cards_enabled': False,
+    'rweb_tipjar_consumption_enabled': False,
+    'responsive_web_grok_show_grok_translated_post': False,
+    'responsive_web_jetfuel_frame': False,
+    'responsive_web_grok_image_annotation_enabled': False,
+    'rweb_video_screen_enabled': False,
+    'responsive_web_grok_imagine_annotation_enabled': False,
+    'premium_content_api_read_enabled': False,
+    'responsive_web_grok_annotations_enabled': False,
+    'profile_label_improvements_pcf_label_in_post_enabled': False,
+    'responsive_web_grok_community_note_auto_translation_is_enabled': False,
+    'responsive_web_grok_analysis_button_from_backend': False,
+    'post_ctas_fetch_enabled': False,
+    'responsive_web_profile_redirect_enabled': False,
+    'responsive_web_grok_analyze_post_followups_enabled': False,
+    'creator_subscriptions_quote_tweet_preview_enabled': False,
+    'responsive_web_grok_share_attachment_enabled': False,
+    'responsive_web_grok_analyze_button_fetch_trends_enabled': False,
+    'communities_web_enable_tweet_community_results_fetch': False,
+    'articles_preview_enabled': False
 }
 
 USER_FEATURES = {
