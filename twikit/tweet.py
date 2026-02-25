@@ -102,6 +102,7 @@ class Tweet:
         self._data = data
         self._legacy: dict = self._data['legacy']
         self.user = user
+        self.limited_actions: list[str] | None = limited_actions
 
         self.replies: Result[Tweet] | None = None
         self.reply_to: list[Tweet] | None = None
