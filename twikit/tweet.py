@@ -572,7 +572,7 @@ def tweet_from_data(client: Client, data: dict) -> Tweet:
     if tweet_data.get('__typename') == 'TweetTombstone':
         return None
     if 'limitedActionResults' in tweet_data and tweet_data['limitedActionResults']:
-        limited_actions = [a['action'] for a in tweet_data['limitedActionResults']]
+        limited_actions = [a['action'] for a in tweet_data['limitedActionResults']['limited_actions']]
     if 'tweet' in tweet_data:
         tweet_data = tweet_data['tweet']
     if 'core' not in tweet_data:
