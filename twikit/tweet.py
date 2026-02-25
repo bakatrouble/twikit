@@ -97,7 +97,7 @@ class Tweet:
         The full text of the tweet.
     """
 
-    def __init__(self, client: Client, data: dict, user: User = None) -> None:
+    def __init__(self, client: Client, data: dict, user: User = None, limited_actions: list[str] = None) -> None:
         self._client = client
         self._data = data
         self._legacy: dict = self._data['legacy']
@@ -566,9 +566,12 @@ def tweet_from_data(client: Client, data: dict) -> Tweet:
     if not tweet_data_:
         return None
     tweet_data = tweet_data_[0]
+    limited_actions = None
 
     if tweet_data.get('__typename') == 'TweetTombstone':
         return None
+    if 'limitedActionResult' in tweet_data and tweet_data['limitedActionResult']:
+        limited_actions = [a['action'] for a in tweet_data['limitedActionResult']]
     if 'tweet' in tweet_data:
         tweet_data = tweet_data['tweet']
     if 'core' not in tweet_data:
@@ -579,7 +582,7 @@ def tweet_from_data(client: Client, data: dict) -> Tweet:
         return None
 
     user_data = tweet_data['core']['user_results']['result']
-    return Tweet(client, tweet_data, User(client, user_data))
+    return Tweet(client, tweet_data, User(client, user_data), limited_actions)
 
 
 class ScheduledTweet:
