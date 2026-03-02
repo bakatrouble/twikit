@@ -26,6 +26,7 @@ class ClientTransaction:
 
     def __init__(self):
         self.home_page_response = None
+        self.key = self.key_bytes = self.animation_key = None
 
     async def init(self, session, headers):
         home_page_response = await handle_x_migration(session, headers)
