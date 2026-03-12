@@ -153,7 +153,10 @@ class User:
             self.profile_image_url: str = legacy['profile_image_url_https']
 
         if 'location' in data:
-            self.location: str = data['location']['location']
+            if isinstance(data['location'], dict):
+                self.location: str = data['location']['location']
+            else:
+                self.location: str = data['location']
         else:
             self.location: str = legacy['location']
 
