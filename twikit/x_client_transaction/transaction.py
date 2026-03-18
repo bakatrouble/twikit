@@ -12,10 +12,14 @@ from .interpolate import interpolate
 from .rotation import convert_rotation_to_matrix
 from .utils import float_to_hex, is_odd, base64_encode, handle_x_migration
 
-ON_DEMAND_FILE_REGEX = re.compile(
-    r"""['|\"]{1}ondemand\.s['|\"]{1}:\s*['|\"]{1}([\w]*)['|\"]{1}""", flags=(re.VERBOSE | re.MULTILINE))
+# ON_DEMAND_FILE_REGEX = re.compile(
+#     r"""['|\"]{1}ondemand\.s['|\"]{1}:\s*['|\"]{1}([\w]*)['|\"]{1}""", flags=(re.VERBOSE | re.MULTILINE))
 INDICES_REGEX = re.compile(
     r"""(\(\w{1}\[(\d{1,2})\],\s*16\))+""", flags=(re.VERBOSE | re.MULTILINE))
+ON_DEMAND_INDEX_REGEX = re.compile(
+    r"""(\d+):\s*['|"]ondemand\.s['|"]"""
+)
+
 
 
 class ClientTransaction:
@@ -43,7 +47,9 @@ class ClientTransaction:
         key_byte_indices = []
         response = self.validate_response(
             home_page_response) or self.home_page_response
-        on_demand_file = ON_DEMAND_FILE_REGEX.search(str(response))
+        on_demand_index = ON_DEMAND_INDEX_REGEX.search(str(response))
+        on_demand_file_regex = re.compile(fr"""{on_demand_index.group(1)}:\s*['|"]([0-9a-f]+?)['|"]""")
+        on_demand_file = on_demand_file_regex.search(str(response))
         if on_demand_file:
             on_demand_file_url = f"https://abs.twimg.com/responsive-web/client-web/ondemand.s.{on_demand_file.group(1)}a.js"
             on_demand_file_response = await session.request(method="GET", url=on_demand_file_url, headers=headers)
