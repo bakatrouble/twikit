@@ -4,11 +4,18 @@ import base64
 from typing import Union
 
 
+class XMigrationError(Exception):
+    def __init__(self, response):
+        self.response = response
+
+
 async def handle_x_migration(session, headers):
     home_page = None
     migration_redirection_regex = re.compile(
         r"""(http(?:s)?://(?:www\.)?(twitter|x){1}\.com(/x)?/migrate([/?])?tok=[a-zA-Z0-9%\-_]+)+""", re.VERBOSE)
     response = await session.request(method="GET", url="https://x.com", headers=headers)
+    if response.status_code >= 400:
+        raise XMigrationError(response)
     home_page = bs4.BeautifulSoup(response.content, 'lxml')
     migration_url = home_page.select_one("meta[http-equiv='refresh']")
     migration_redirection_url = re.search(migration_redirection_regex, str(
