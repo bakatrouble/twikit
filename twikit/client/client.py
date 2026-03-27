@@ -4,6 +4,7 @@ import asyncio
 import io
 import json
 import os
+import logging
 
 import warnings
 from functools import partial
@@ -155,6 +156,7 @@ class Client:
             response_data = response.text
 
         if isinstance(response_data, dict) and 'errors' in response_data:
+            logging.info(f'errors={json.dumps(response_data['errors'])}')
             error_code = response_data['errors'][0]['code']
             error_message = response_data['errors'][0].get('message')
             if error_code in (37, 64):
