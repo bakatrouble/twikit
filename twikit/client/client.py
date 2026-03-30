@@ -1928,7 +1928,11 @@ class Client:
         instructions = instructions_[0]
 
         items = instructions[-1]['entries']
+        if 'value' not in items[-1]['content']:
+            logging.warning(f'`value` not found for next_cursor: {json.dumps(items[-1]['content'])}')
         next_cursor = items[-1]['content']['value']
+        if 'value' not in items[-2]['content']:
+            logging.warning(f'`value` not found for previous_cursor: {json.dumps(items[-2]['content'])}')
         previous_cursor = items[-2]['content']['value']
 
         if tweet_type == 'Media':
