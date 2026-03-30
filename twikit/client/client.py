@@ -1927,19 +1927,22 @@ class Client:
             return Result([])
         instructions = instructions_[0]
 
-        items = instructions[-1]['entries']
-        if 'value' not in items[-1]['content']:
-            logging.warning(f'`value` not found for next_cursor: {json.dumps(items)}')
-        next_cursor = items[-1]['content']['value']
-        if 'value' not in items[-2]['content']:
-            logging.warning(f'`value` not found for previous_cursor: {json.dumps(items)}')
-        previous_cursor = items[-2]['content']['value']
-
-        if tweet_type == 'Media':
-            if cursor is None:
-                items = items[0]['content']['items']
-            else:
-                items = instructions[0]['moduleItems']
+        next_cursor = previous_cursor = None
+        items = []
+        for instruction in instructions:
+            if instruction['type'] == 'TimelineAddEntries':
+                for entry in instruction['entries']:
+                    if entry['content']['entryType'] == 'TimelineTimelineItem':
+                        items.append(entry)
+                    elif entry['content']['entryType'] == 'TimelineTimelineModule':
+                        component = entry['content'].get('clientEventInfo', {}).get('component', '')
+                        if component == 'profile-media':
+                            items.extend(entry['content']['items'])
+                    elif entry['content']['entryType'] == 'TimelineTimelineCursor':
+                        if entry['content']['cursorType'] == 'Bottom':
+                            next_cursor = entry['content']['value']
+                        elif entry['content']['cursorType'] == 'Top':
+                            previous_cursor = entry['content']['value']
 
         results = []
         for item in items:
